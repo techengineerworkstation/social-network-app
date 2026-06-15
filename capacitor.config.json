@@ -1,0 +1,26 @@
+{
+  "appId": "com.socialnetworkapp.dashboard",
+  "appName": "Social Network App",
+  "webDir": "out",
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": ["localhost", "*.vercel.app", "*.onrender.com"]
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#f8f8f9",
+      "showSpinner": true,
+      "spinnerColor": "#f97c35"
+    },
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#f8f8f9"
+    }
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}

@@ -111,6 +111,25 @@ model PlatformKey {
   @@map("platform_keys")
 }
 
+model Notification {
+  id              String   @id @default(cuid())
+  platformId      String
+  type            String   // like | comment | follow | share | mention | reply | repost | quote
+  actorHandle     String   // username/handle of the person who acted
+  actorName       String?  // display name
+  actorAvatarUrl  String?  // profile picture URL
+  actorProfileUrl String?  // link to their profile
+  targetContent   String?  // snippet of the post they engaged with
+  message         String?  // full message (e.g. comment text, reply text)
+  externalId      String?  // platform-specific notification ID
+  read            Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([platformId, createdAt(sort: Desc)])
+  @@index([read])
+  @@map("notifications")
+}
+
 model ActivityLog {
   id          String   @id @default(cuid())
   type        String   // schedule | publish | approve | ai_generate | sync | error

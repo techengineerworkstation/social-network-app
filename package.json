@@ -2,6 +2,7 @@
   "name": "social-network-app",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -11,7 +12,15 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "cron": "tsx scripts/cron.ts"
+    "cron": "tsx scripts/cron.ts",
+    "cap:init": "npx cap init",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "android:build": "npm run build && npx cap sync && npx cap open android",
+    "electron:dev": "electron .",
+    "electron:build": "npm run build && electron-builder --linux",
+    "linux:build": "npm run build && electron-builder --linux AppImage deb"
   },
   "dependencies": {
     "@prisma/client": "6.19.3",
@@ -27,10 +36,18 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.0-preview.3",
     "postcss": "^8.5.15",
@@ -38,5 +55,28 @@
     "tailwindcss": "^4",
     "tsx": "^4.19.0",
     "typescript": "^5"
+  },
+  "build": {
+    "appId": "com.socialnetworkapp.desktop",
+    "productName": "Social Network App",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "out/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Network",
+      "icon": "public/icon.png"
+    },
+    "extraResources": [
+      {
+        "from": "node_modules/.prisma",
+        "to": "node_modules/.prisma"
+      }
+    ]
   }
 }

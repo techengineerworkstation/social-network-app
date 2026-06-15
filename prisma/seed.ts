@@ -105,6 +105,89 @@ async function main() {
     ],
   });
 
+  // Create sample notifications (incoming engagement from other users)
+  await prisma.notification.createMany({
+    data: [
+      {
+        platformId: "x",
+        type: "like",
+        actorHandle: "johndoe",
+        actorName: "John Doe",
+        actorAvatarUrl: "https://i.pravatar.cc/150?u=johndoe",
+        actorProfileUrl: "https://x.com/johndoe",
+        targetContent: "Product launch announcement",
+        read: false,
+      },
+      {
+        platformId: "x",
+        type: "comment",
+        actorHandle: "janecreator",
+        actorName: "Jane Creator",
+        actorAvatarUrl: "https://i.pravatar.cc/150?u=janecreator",
+        actorProfileUrl: "https://x.com/janecreator",
+        targetContent: "Product launch announcement",
+        message: "This looks amazing! Can't wait to try it out.",
+        read: false,
+      },
+      {
+        platformId: "linkedin",
+        type: "follow",
+        actorHandle: "alex-smith-dev",
+        actorName: "Alex Smith",
+        actorAvatarUrl: "https://i.pravatar.cc/150?u=alexsmith",
+        actorProfileUrl: "https://linkedin.com/in/alex-smith-dev",
+        read: false,
+      },
+      {
+        platformId: "bluesky",
+        type: "repost",
+        actorHandle: "techfan.bsky.social",
+        actorName: "Tech Fan",
+        actorAvatarUrl: "https://i.pravatar.cc/150?u=techfan",
+        targetContent: "Weekly community update",
+        read: true,
+      },
+      {
+        platformId: "instagram",
+        type: "like",
+        actorHandle: "designguru",
+        actorName: "Design Guru",
+        actorAvatarUrl: "https://i.pravatar.cc/150?u=designguru",
+        targetContent: "Instagram reel teaser",
+        read: true,
+      },
+      {
+        platformId: "mastodon",
+        type: "reply",
+        actorHandle: "openweb_advocate",
+        actorName: "Open Web Advocate",
+        actorAvatarUrl: "https://i.pravatar.cc/150?u=openweb",
+        targetContent: "Product launch announcement",
+        message: "Great to see more open-source tools in this space!",
+        read: false,
+      },
+      {
+        platformId: "x",
+        type: "share",
+        actorHandle: "devcommunity",
+        actorName: "Dev Community",
+        actorAvatarUrl: "https://i.pravatar.cc/150?u=devcomm",
+        targetContent: "Product launch announcement",
+        read: true,
+      },
+      {
+        platformId: "linkedin",
+        type: "comment",
+        actorHandle: "sarah-marketing",
+        actorName: "Sarah Marketing",
+        actorAvatarUrl: "https://i.pravatar.cc/150?u=sarahm",
+        targetContent: "Product launch announcement",
+        message: "Congrats on the launch! The features look solid.",
+        read: false,
+      },
+    ],
+  });
+
   console.log("Seeded database with demo data.", { published, scheduled, draft });
 }
 

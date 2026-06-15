@@ -13,9 +13,11 @@ import {
   Sparkles,
   Menu,
   X,
+  Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { NotificationDropdown } from "@/components/notifications/notification-dropdown";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -25,9 +27,29 @@ const navItems = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
+const themes = [
+  { id: "silver", label: "Silver (Default)", colors: "from-orange-400 to-magenta-500" },
+  { id: "ultramarine", label: "Ultramarine", colors: "from-blue-500 to-indigo-600" },
+];
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [theme, setTheme] = useState("silver");
+  const [showThemePicker, setShowThemePicker] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") ?? "silver";
+    setTheme(saved);
+    document.documentElement.setAttribute("data-theme", saved);
+  }, []);
+
+  const switchTheme = (id: string) => {
+    setTheme(id);
+    localStorage.setItem("theme", id);
+    document.documentElement.setAttribute("data-theme", id);
+    setShowThemePicker(false);
+  };
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
@@ -121,6 +143,61 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main className="flex-1 overflow-auto">
+        {/* Top bar */}
+        <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card/80 px-4 backdrop-blur sm:px-6">
+          <div className="text-sm font-medium text-muted-foreground">
+            {navItems.find((n) => n.href === pathname)?.label ?? ""}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Theme switcher */}
+            <div className="relative">
+              <button
+                onClick={() => setShowThemePicker(!showThemePicker)}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <Palette className="h-4 w-4" />
+              </button>
+
+              <AnimatePresence>
+                {showThemePicker && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    className="absolute right-0 top-12 z-50 w-56 rounded-xl border border-border bg-card p-2 shadow-xl"
+                  >
+                    <p className="mb-2 px-2 text-xs font-medium text-muted-foreground">
+                      Theme
+                    </p>
+                    {themes.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => switchTheme(t.id)}
+                        className={cn(
+                          "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted",
+                          theme === t.id && "bg-accent"
+                        )}
+                      >
+                        <span
+                          className={`h-4 w-4 rounded-full bg-gradient-to-br ${t.colors}`}
+                        />
+                        {t.label}
+                        {theme === t.id && (
+                          <span className="ml-auto text-xs text-primary">Active</span>
+                        )}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Notifications */}
+            <NotificationDropdown />
+          </div>
+        </div>
+
         <AnimatePresence mode="wait">
           <motion.div
             key={pathname}
