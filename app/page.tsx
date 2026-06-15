@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { motion, useInView } from "framer-motion";
 import {
   BarChart,
   Bar,
@@ -62,11 +64,20 @@ const formatData = [
   { name: "Articles", value: 8, color: "#16a34a" },
 ];
 
+const engagementDonutData = [
+  { name: "Likes", value: 5220, color: "#f97c35" },
+  { name: "Comments", value: 970, color: "#d75f8f" },
+  { name: "Shares", value: 1145, color: "#6364FF" },
+  { name: "Clicks", value: 1085, color: "#0A66C2" },
+];
+
 const recentActions = [
   { id: "1", action: "Post scheduled", target: "LinkedIn product launch", time: "2 min ago", status: "pending" },
   { id: "2", action: "AI draft generated", target: "Mastodon thread", time: "15 min ago", status: "success" },
   { id: "3", action: "Campaign published", target: "X / Bluesky awareness", time: "1 hr ago", status: "success" },
   { id: "4", action: "Reply received", target: "Instagram reel teaser", time: "3 hr ago", status: "info" },
+  { id: "5", action: "New follower", target: "X (@techfan)", time: "5 hr ago", status: "success" },
+  { id: "6", action: "Post approved", target: "YouTube short", time: "6 hr ago", status: "pending" },
 ];
 
 const notifications = [
@@ -81,6 +92,53 @@ const quickActions = [
   { label: "Platforms", description: "Connect social accounts", icon: Plug, href: "/platforms" },
   { label: "Analytics", description: "View cross-platform metrics", icon: BarChart3, href: "#analytics" },
 ];
+
+// ── Animated Counter ─────────────────────────────
+function AnimatedCounter({ value, duration = 1.5 }: { value: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+
+  useEffect(() => {
+    if (!inView) return;
+    let start = 0;
+    const end = value;
+    const increment = end / (duration * 60);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= end) {
+        setCount(end);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 1000 / 60);
+    return () => clearInterval(timer);
+  }, [inView, value, duration]);
+
+  return <span ref={ref}>{formatNumber(count)}</span>;
+}
+
+// ── Animated Table Row ───────────────────────────
+function AnimatedRow({
+  children,
+  index,
+}: {
+  children: React.ReactNode;
+  index: number;
+}) {
+  return (
+    <motion.tr
+      initial={{ opacity: 0, x: -16 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.08, duration: 0.35, ease: "easeOut" }}
+      className="border-b border-border last:border-0"
+    >
+      {children}
+    </motion.tr>
+  );
+}
 
 export default function DashboardPage() {
   return (
@@ -106,19 +164,21 @@ export default function DashboardPage() {
           </Badge>
         </div>
 
-        {/* Stats */}
+        {/* Stats with animated counters */}
         <MotionContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
               <MotionItem key={stat.label}>
-                <Card>
+                <Card className="overflow-hidden">
                   <CardHeader className="flex-col items-start gap-1">
                     <div className="flex w-full items-center justify-between">
                       <CardDescription>{stat.label}</CardDescription>
                       <Icon className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <CardTitle className="text-3xl">{formatNumber(stat.value)}</CardTitle>
+                    <CardTitle className="text-3xl">
+                      <AnimatedCounter value={stat.value} />
+                    </CardTitle>
                     <span className="text-xs text-muted-foreground">{stat.change}</span>
                   </CardHeader>
                 </Card>
@@ -154,10 +214,15 @@ export default function DashboardPage() {
           </MotionContainer>
         </div>
 
-        {/* Charts */}
-        <div id="analytics">
-        <MotionContainer className="grid gap-6 lg:grid-cols-2">
-          <MotionItem>
+        {/* Animated Charts */}
+        <div id="analytics" className="grid gap-6 lg:grid-cols-2">
+          {/* Bar Chart - Animated bars */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <Card>
               <CardHeader>
                 <CardTitle>Engagement by Platform</CardTitle>
@@ -168,18 +233,54 @@ export default function DashboardPage() {
                   <BarChart data={engagementData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
                     <XAxis dataKey="platform" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "1px solid var(--border)",
+                        background: "var(--card)",
+                      }}
+                    />
                     <Legend />
-                    <Bar dataKey="likes" fill="#f97c35" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="comments" fill="#d75f8f" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="shares" fill="#6364FF" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="likes"
+                      fill="#f97c35"
+                      radius={[4, 4, 0, 0]}
+                      isAnimationActive={true}
+                      animationDuration={1500}
+                      animationBegin={0}
+                      animationEasing="ease-out"
+                    />
+                    <Bar
+                      dataKey="comments"
+                      fill="#d75f8f"
+                      radius={[4, 4, 0, 0]}
+                      isAnimationActive={true}
+                      animationDuration={1500}
+                      animationBegin={300}
+                      animationEasing="ease-out"
+                    />
+                    <Bar
+                      dataKey="shares"
+                      fill="#6364FF"
+                      radius={[4, 4, 0, 0]}
+                      isAnimationActive={true}
+                      animationDuration={1500}
+                      animationBegin={600}
+                      animationEasing="ease-out"
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
-          </MotionItem>
+          </motion.div>
 
-          <MotionItem>
+          {/* Pie Chart - Animated filling */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
+          >
             <Card>
               <CardHeader>
                 <CardTitle>Content Format Distribution</CardTitle>
@@ -196,24 +297,152 @@ export default function DashboardPage() {
                       outerRadius={90}
                       paddingAngle={3}
                       dataKey="value"
+                      isAnimationActive={true}
+                      animationDuration={1800}
+                      animationBegin={200}
+                      animationEasing="ease-out"
                     >
                       {formatData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "1px solid var(--border)",
+                        background: "var(--card)",
+                      }}
+                    />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </Card>
-          </MotionItem>
-        </MotionContainer>
+          </motion.div>
         </div>
 
-        {/* Tables & Notifications */}
-        <MotionContainer className="grid gap-6 lg:grid-cols-2">
-          <MotionItem>
+        {/* Donut Ring Charts */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Donut - Engagement Breakdown */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Engagement Breakdown</CardTitle>
+                <CardDescription>Donut ring showing likes, comments, shares, and clicks</CardDescription>
+              </CardHeader>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={engagementDonutData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={85}
+                      paddingAngle={2}
+                      dataKey="value"
+                      isAnimationActive={true}
+                      animationDuration={2000}
+                      animationBegin={0}
+                      animationEasing="ease-out"
+                      startAngle={90}
+                      endAngle={-270}
+                    >
+                      {engagementDonutData.map((entry, index) => (
+                        <Cell key={`donut-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "1px solid var(--border)",
+                        background: "var(--card)",
+                      }}
+                      formatter={(value) => formatNumber(Number(value))}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </motion.div>
+
+          {/* Donut - Platform Share */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Platform Share</CardTitle>
+                <CardDescription>Content distribution across connected platforms</CardDescription>
+              </CardHeader>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: "X", value: 35, color: "#000000" },
+                        { name: "LinkedIn", value: 25, color: "#0A66C2" },
+                        { name: "Instagram", value: 20, color: "#E4405F" },
+                        { name: "Mastodon", value: 12, color: "#6364FF" },
+                        { name: "Bluesky", value: 8, color: "#0085FF" },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={85}
+                      paddingAngle={2}
+                      dataKey="value"
+                      isAnimationActive={true}
+                      animationDuration={2000}
+                      animationBegin={300}
+                      animationEasing="ease-out"
+                      startAngle={90}
+                      endAngle={-270}
+                    >
+                      {[
+                        { color: "#000000" },
+                        { color: "#0A66C2" },
+                        { color: "#E4405F" },
+                        { color: "#6364FF" },
+                        { color: "#0085FF" },
+                      ].map((entry, index) => (
+                        <Cell key={`platform-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "1px solid var(--border)",
+                        background: "var(--card)",
+                      }}
+                      formatter={(value) => `${value}%`}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+          </motion.div>
+        </div>
+
+        {/* Animated Tables & Notifications */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Animated Activity Table */}
+          <motion.div
+            initial={{ opacity: 0, x: -24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <Card>
               <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>
@@ -222,16 +451,21 @@ export default function DashboardPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border text-left text-muted-foreground">
+                    <motion.tr
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: true }}
+                      className="border-b border-border text-left text-muted-foreground"
+                    >
                       <th className="pb-2 font-medium">Action</th>
                       <th className="pb-2 font-medium">Target</th>
                       <th className="pb-2 font-medium">Time</th>
                       <th className="pb-2 font-medium">Status</th>
-                    </tr>
+                    </motion.tr>
                   </thead>
                   <tbody>
-                    {recentActions.map((row) => (
-                      <tr key={row.id} className="border-b border-border last:border-0">
+                    {recentActions.map((row, i) => (
+                      <AnimatedRow key={row.id} index={i}>
                         <td className="py-3 font-medium">{row.action}</td>
                         <td className="py-3 text-muted-foreground">{row.target}</td>
                         <td className="py-3 text-muted-foreground">{row.time}</td>
@@ -248,15 +482,21 @@ export default function DashboardPage() {
                             {row.status}
                           </Badge>
                         </td>
-                      </tr>
+                      </AnimatedRow>
                     ))}
                   </tbody>
                 </table>
               </div>
             </Card>
-          </MotionItem>
+          </motion.div>
 
-          <MotionItem>
+          {/* Notifications */}
+          <motion.div
+            initial={{ opacity: 0, x: 24 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+          >
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -266,53 +506,66 @@ export default function DashboardPage() {
                 <CardDescription>Alerts requiring your attention</CardDescription>
               </CardHeader>
               <div className="space-y-3">
-                {notifications.map((note) => (
-                  <div
+                {notifications.map((note, i) => (
+                  <motion.div
                     key={note.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1, duration: 0.3 }}
                     className="flex items-start gap-3 rounded-lg border border-border p-3 transition-colors hover:bg-muted/50"
                   >
                     {note.type === "warning" && <AlertTriangleIcon />}
                     {note.type === "info" && <InfoIcon />}
                     {note.type === "success" && <CheckIcon />}
                     <p className="text-sm">{note.message}</p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </Card>
-          </MotionItem>
-        </MotionContainer>
+          </motion.div>
+        </div>
 
-        {/* Campaign traction */}
-        <MotionContainer>
-          <MotionItem>
-            <Card>
-              <CardHeader>
-                <CardTitle>Campaign Outreach Traction</CardTitle>
-                <CardDescription>Aggregated reach metrics for active campaigns</CardDescription>
-              </CardHeader>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {[
-                  { label: "Impressions", value: 124500, icon: Eye },
-                  { label: "Likes", value: 8420, icon: Heart },
-                  { label: "Comments", value: 1230, icon: MessageSquare },
-                  { label: "Shares", value: 2890, icon: Share2 },
-                ].map((metric) => {
-                  const Icon = metric.icon;
-                  return (
-                    <div
-                      key={metric.label}
-                      className="rounded-lg border border-border p-4 transition-colors hover:bg-muted/50"
-                    >
-                      <Icon className="mb-2 h-5 w-5 text-orange-500" />
-                      <p className="text-2xl font-semibold">{formatNumber(metric.value)}</p>
-                      <p className="text-xs text-muted-foreground">{metric.label}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          </MotionItem>
-        </MotionContainer>
+        {/* Animated Campaign Traction */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Campaign Outreach Traction</CardTitle>
+              <CardDescription>Aggregated reach metrics for active campaigns</CardDescription>
+            </CardHeader>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: "Impressions", value: 124500, icon: Eye },
+                { label: "Likes", value: 8420, icon: Heart },
+                { label: "Comments", value: 1230, icon: MessageSquare },
+                { label: "Shares", value: 2890, icon: Share2 },
+              ].map((metric, i) => {
+                const Icon = metric.icon;
+                return (
+                  <motion.div
+                    key={metric.label}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1, duration: 0.4 }}
+                    className="rounded-lg border border-border p-4 transition-colors hover:bg-muted/50"
+                  >
+                    <Icon className="mb-2 h-5 w-5 text-orange-500" />
+                    <p className="text-2xl font-semibold">
+                      <AnimatedCounter value={metric.value} duration={2} />
+                    </p>
+                    <p className="text-xs text-muted-foreground">{metric.label}</p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </Card>
+        </motion.div>
 
         {/* Platforms overview */}
         <div>
