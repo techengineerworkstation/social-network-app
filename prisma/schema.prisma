@@ -13,11 +13,11 @@ model Account {
   handle        String
   displayName   String
   avatarUrl     String?
-  accessToken   String?  // encrypted at rest in production
+  accessToken   String?
   refreshToken  String?
-  apiKey        String?  // encrypted at rest in production
+  apiKey        String?
   instanceUrl   String?
-  status        String   @default("active") // active | expired | error
+  status        String   @default("active")
   connectedAt   DateTime @default(now())
   updatedAt     DateTime @updatedAt
   posts         PostPlatform[]
@@ -30,8 +30,8 @@ model Post {
   id            String   @id @default(cuid())
   title         String?
   content       String
-  format        String   @default("post") // post | thread | story | reel | image | video | gif | article | newsletter
-  status        String   @default("draft") // draft | scheduled | pending_approval | published | failed
+  format        String   @default("post")
+  status        String   @default("draft")
   scheduledAt   DateTime?
   publishedAt   DateTime?
   createdAt     DateTime @default(now())
@@ -50,7 +50,7 @@ model PostPlatform {
   account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
   accountId   String
   externalId  String?
-  status      String   @default("pending") // pending | sent | failed
+  status      String   @default("pending")
   sentAt      DateTime?
 
   @@unique([postId, accountId])
@@ -62,7 +62,7 @@ model Media {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    String
   url       String
-  type      String   // image | video | gif
+  type      String
   altText   String?
 
   @@map("media")
@@ -86,7 +86,7 @@ model AiConfig {
   id            String   @id @default(cuid())
   provider      String
   model         String?
-  apiKey        String?  // encrypted at rest in production
+  apiKey        String?
   baseUrl       String?
   isDefault     Boolean  @default(false)
   updatedAt     DateTime @updatedAt
@@ -114,14 +114,14 @@ model PlatformKey {
 model Notification {
   id              String   @id @default(cuid())
   platformId      String
-  type            String   // like | comment | follow | share | mention | reply | repost | quote
-  actorHandle     String   // username/handle of the person who acted
-  actorName       String?  // display name
-  actorAvatarUrl  String?  // profile picture URL
-  actorProfileUrl String?  // link to their profile
-  targetContent   String?  // snippet of the post they engaged with
-  message         String?  // full message (e.g. comment text, reply text)
-  externalId      String?  // platform-specific notification ID
+  type            String
+  actorHandle     String
+  actorName       String?
+  actorAvatarUrl  String?
+  actorProfileUrl String?
+  targetContent   String?
+  message         String?
+  externalId      String?
   read            Boolean  @default(false)
   createdAt       DateTime @default(now())
 
@@ -132,9 +132,9 @@ model Notification {
 
 model ActivityLog {
   id          String   @id @default(cuid())
-  type        String   // schedule | publish | approve | ai_generate | sync | error
+  type        String
   message     String
-  metadata    String?  // JSON string
+  metadata    String?
   createdAt   DateTime @default(now())
 
   @@map("activity_logs")
