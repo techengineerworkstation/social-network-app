@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, Image, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { CalendarClock, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { AiAssistantPanel } from "@/components/ai/ai-assistant-panel";
+import { MediaGenerator, type MediaAttachment } from "@/components/compose/media-generator";
 import {
   MotionContainer,
   MotionItem,
@@ -37,6 +37,7 @@ export default function ComposePage() {
   const [scheduledAt, setScheduledAt] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [attachments, setAttachments] = useState<MediaAttachment[]>([]);
 
   const togglePlatform = (id: string) => {
     setSelectedPlatforms((prev) =>
@@ -46,6 +47,14 @@ export default function ComposePage() {
 
   const handleApplyAi = (text: string) => {
     setContent(text);
+  };
+
+  const handleAttachMedia = (media: MediaAttachment) => {
+    setAttachments((prev) => [...prev, media]);
+  };
+
+  const handleRemoveMedia = (id: string) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
   const handleSubmit = async (status: "draft" | "scheduled") => {
@@ -151,10 +160,12 @@ export default function ComposePage() {
                     className="min-h-[180px]"
                   />
 
-                  <div className="flex items-center gap-2 rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                    <Image className="h-4 w-4" />
-                    <span>Drag images, videos, or GIFs here (placeholder)</span>
-                  </div>
+                  {/* Media Generator */}
+                  <MediaGenerator
+                    onAttach={handleAttachMedia}
+                    attachments={attachments}
+                    onRemove={handleRemoveMedia}
+                  />
 
                   <div>
                     <label className="mb-2 block text-sm font-medium text-foreground">

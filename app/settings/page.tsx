@@ -12,6 +12,9 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
+  Plug,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +54,8 @@ export default function SettingsPage() {
   const [savingPlatform, setSavingPlatform] = useState<string | null>(null);
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [mcpEndpoint, setMcpEndpoint] = useState("http://localhost:3001");
+  const [mcpKey, setMcpKey] = useState("");
 
   useEffect(() => {
     fetch("/api/platform-keys")
@@ -408,6 +413,130 @@ export default function SettingsPage() {
                   })}
                 </div>
               )}
+            </Card>
+          </MotionItem>
+        </MotionContainer>
+
+        {/* MCP Server Configuration */}
+        <MotionContainer>
+          <MotionItem>
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Plug className="h-4 w-4 text-orange-500" />
+                  <CardTitle>MCP Server Connections</CardTitle>
+                </div>
+                <CardDescription>
+                  Connect Model Context Protocol (MCP) servers for animation generation,
+                  image creation, and video rendering. The Hyperframes app runs locally
+                  and exposes an MCP-compatible API.
+                </CardDescription>
+              </CardHeader>
+
+              <div className="space-y-4">
+                {/* Hyperframes MCP */}
+                <div className="rounded-lg border border-border p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
+                        H
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold">Hyperframes Animation Engine</p>
+                        <p className="text-xs text-muted-foreground">
+                          Local MCP server for CSS/HTML/Lottie/GIF animations
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="gap-1">
+                      <WifiOff className="h-3 w-3" />
+                      Not connected
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Input
+                      label="MCP Endpoint URL"
+                      placeholder="http://localhost:3001"
+                      value={mcpEndpoint}
+                      onChange={(e) => setMcpEndpoint(e.target.value)}
+                    />
+                    <Input
+                      label="API Key (optional)"
+                      type="password"
+                      placeholder="Enter key if required"
+                      value={mcpKey}
+                      onChange={(e) => setMcpKey(e.target.value)}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={async () => {
+                          try {
+                            const res = await fetch("/api/mcp");
+                            const data = await res.json();
+                            const hyperframes = data.find(
+                              (s: { id: string }) => s.id === "hyperframes"
+                            );
+                            setMessage({
+                              type: hyperframes?.status === "connected" ? "success" : "error",
+                              text:
+                                hyperframes?.status === "connected"
+                                  ? "Hyperframes MCP server is reachable"
+                                  : "Cannot connect to Hyperframes MCP server",
+                            });
+                          } catch {
+                            setMessage({
+                              type: "error",
+                              text: "Failed to check MCP server health",
+                            });
+                          }
+                        }}
+                      >
+                        <Wifi className="h-3 w-3" />
+                        Test Connection
+                      </Button>
+                      <Button size="sm" className="flex-1" onClick={handleSave}>
+                        <Save className="h-3 w-3" />
+                        Save MCP Config
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
+                    <p className="font-medium">Capabilities:</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {[
+                        "generate_animation",
+                        "generate_hyperframe",
+                        "generate_lottie",
+                        "generate_css_animation",
+                        "generate_image",
+                        "generate_video",
+                      ].map((cap) => (
+                        <Badge key={cap} variant="secondary" className="text-[10px]">
+                          {cap}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="mt-2">
+                      Set <code className="rounded bg-muted px-1 font-mono">HYPERFRAMES_MCP_URL</code> in
+                      your <code className="rounded bg-muted px-1 font-mono">.env</code> file to auto-connect.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Generic MCP server addition hint */}
+                <div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                  <Plug className="mx-auto mb-2 h-5 w-5" />
+                  <p>
+                    Additional MCP servers can be configured by adding entries to{" "}
+                    <code className="rounded bg-muted px-1 font-mono">lib/ai/mcp-client.ts</code>
+                  </p>
+                </div>
+              </div>
             </Card>
           </MotionItem>
         </MotionContainer>
