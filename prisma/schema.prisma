@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id            String   @id @default(cuid())
+  platformId    String
+  handle        String
+  displayName   String
+  avatarUrl     String?
+  accessToken   String?  // encrypted at rest in production
+  refreshToken  String?
+  apiKey        String?  // encrypted at rest in production
+  instanceUrl   String?
+  status        String   @default("active") // active | expired | error
+  connectedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  posts         PostPlatform[]
+
+  @@unique([platformId, handle])
+  @@map("accounts")
+}
+
+model Post {
+  id            String   @id @default(cuid())
+  title         String?
+  content       String
+  format        String   @default("post") // post | thread | story | reel | image | video | gif | article | newsletter
+  status        String   @default("draft") // draft | scheduled | pending_approval | published | failed
+  scheduledAt   DateTime?
+  publishedAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  platforms     PostPlatform[]
+  media         Media[]
+  engagement    Engagement?
+
+  @@map("posts")
+}
+
+model PostPlatform {
+  id          String   @id @default(cuid())
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId      String
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId   String
+  externalId  String?
+  status      String   @default("pending") // pending | sent | failed
+  sentAt      DateTime?
+
+  @@unique([postId, accountId])
+  @@map("post_platforms")
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  url       String
+  type      String   // image | video | gif
+  altText   String?
+
+  @@map("media")
+}
+
+model Engagement {
+  id          String   @id @default(cuid())
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId      String   @unique
+  impressions Int      @default(0)
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  clicks      Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@map("engagements")
+}
+
+model AiConfig {
+  id            String   @id @default(cuid())
+  provider      String
+  model         String?
+  apiKey        String?  // encrypted at rest in production
+  baseUrl       String?
+  isDefault     Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+
+  @@map("ai_configs")
+}
+
+model PlatformKey {
+  id            String   @id @default(cuid())
+  platformId    String   @unique
+  clientId      String?
+  clientSecret  String?
+  accessToken   String?
+  refreshToken  String?
+  apiKey        String?
+  apiSecret     String?
+  instanceUrl   String?
+  scopes        String?
+  notes         String?
+  updatedAt     DateTime @updatedAt
+
+  @@map("platform_keys")
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  type        String   // schedule | publish | approve | ai_generate | sync | error
+  message     String
+  metadata    String?  // JSON string
+  createdAt   DateTime @default(now())
+
+  @@map("activity_logs")
+}
