@@ -185,6 +185,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Ensure content is visible even if JS animations fail */
+@keyframes ensureVisible {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+main div[style*="opacity:0"],
+main div[style*="opacity: 0"] {
+  animation: ensureVisible 0.3s ease-out 0.1s forwards !important;
+}
+
+aside[style*="opacity:0"],
+aside[style*="opacity: 0"] {
+  animation: ensureVisible 0.3s ease-out forwards !important;
+}
+
 /* Focus visible ring using theme token */
 :focus-visible {
   outline: 2px solid var(--ring);

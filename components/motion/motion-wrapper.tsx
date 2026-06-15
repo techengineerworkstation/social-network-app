@@ -32,7 +32,8 @@ export function MotionContainer({
     <motion.div
       className={className}
       initial="hidden"
-      animate="visible"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-40px" }}
       variants={staggerContainer}
       transition={{ delayChildren: delay }}
     >
@@ -70,6 +71,9 @@ export function MotionCard({
       className={className}
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
       whileTap={{ scale: 0.99 }}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true }}
       variants={fadeInUp}
       transition={{ duration: 0.35, ease: "easeOut" }}
     >
@@ -82,8 +86,8 @@ export function MotionPage({ children }: { children: React.ReactNode }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 8 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.3 }}
     >
       {children}
