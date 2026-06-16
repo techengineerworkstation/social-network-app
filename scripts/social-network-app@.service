@@ -11,7 +11,7 @@ WorkingDirectory=/home/%i/Apps/Social Network Program/social-network-app
 Environment=NODE_ENV=production
 Environment=PORT=8899
 EnvironmentFile=-/home/%i/Apps/Social Network Program/social-network-app/.env
-ExecStart=/usr/bin/node /home/%i/Apps/Social\ Network\ Program/social-network-app/node_modules/.bin/next start -p 8899
+ExecStart=/usr/bin/node node_modules/.bin/next start -p 8899
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
@@ -22,7 +22,7 @@ SyslogIdentifier=social-network-app
 NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/%i/Apps/Social\ Network\ Program/social-network-app
+ReadWritePaths=/home/%i/Apps/Social Network Program/social-network-app
 PrivateTmp=true
 
 [Install]
