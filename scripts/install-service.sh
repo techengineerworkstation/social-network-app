@@ -7,12 +7,6 @@
 # Usage:
 #   chmod +x scripts/install-service.sh
 #   ./scripts/install-service.sh
-#
-# This will:
-#   1. Build the Next.js production bundle
-#   2. Copy the systemd service file
-#   3. Enable and start the service
-#   4. Verify it's running
 # ─────────────────────────────────────────────────────────────
 
 set -e
@@ -20,6 +14,8 @@ set -e
 APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SERVICE_NAME="social-network-app@$(whoami)"
 SERVICE_FILE="$APP_DIR/scripts/social-network-app@.service"
+WRAPPER_SRC="$APP_DIR/scripts/start-app.sh"
+WRAPPER_DST="/usr/local/bin/social-network-app"
 SYSTEMD_DIR="/etc/systemd/system"
 
 echo "╔══════════════════════════════════════════════════════╗"
@@ -37,28 +33,30 @@ npm run build
 echo "✓ Build complete"
 echo ""
 
-# Step 2: Install systemd service
-echo "▶ Step 2: Installing systemd service..."
+# Step 2: Install wrapper script to /usr/local/bin
+echo "▶ Step 2: Installing wrapper script..."
+sudo cp "$WRAPPER_SRC" "$WRAPPER_DST"
+sudo chmod +x "$WRAPPER_DST"
+echo "✓ Wrapper installed at $WRAPPER_DST"
+echo ""
 
-# Update paths in service file to use actual user home
-ACTUAL_SERVICE="/tmp/social-network-app.service"
-sed "s|%i|$(whoami)|g" "$SERVICE_FILE" > "$ACTUAL_SERVICE"
-
-sudo cp "$ACTUAL_SERVICE" "$SYSTEMD_DIR/$SERVICE_NAME.service"
+# Step 3: Install systemd service
+echo "▶ Step 3: Installing systemd service..."
+sed "s|%i|$(whoami)|g" "$SERVICE_FILE" | sudo tee "$SYSTEMD_DIR/$SERVICE_NAME.service" > /dev/null
 sudo systemctl daemon-reload
 echo "✓ Service installed"
 echo ""
 
-# Step 3: Enable and start
-echo "▶ Step 3: Enabling and starting service..."
+# Step 4: Enable and start
+echo "▶ Step 4: Enabling and starting service..."
 sudo systemctl enable "$SERVICE_NAME"
 sudo systemctl start "$SERVICE_NAME"
 echo "✓ Service enabled and started"
 echo ""
 
-# Step 4: Verify
-echo "▶ Step 4: Verifying..."
-sleep 3
+# Step 5: Verify
+echo "▶ Step 5: Verifying..."
+sleep 4
 if sudo systemctl is-active --quiet "$SERVICE_NAME"; then
   echo "✓ Service is running"
   echo ""
