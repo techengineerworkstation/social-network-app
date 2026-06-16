@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { AiAssistantPanel } from "@/components/ai/ai-assistant-panel";
 import { MediaGenerator, type MediaAttachment } from "@/components/compose/media-generator";
+import { CanvaDesigner } from "@/components/compose/canva-designer";
 import {
   MotionContainer,
   MotionItem,
@@ -166,6 +167,9 @@ export default function ComposePage() {
                     attachments={attachments}
                     onRemove={handleRemoveMedia}
                   />
+
+                  {/* Canva Design Studio */}
+                  <CanvaDesigner onAttach={handleAttachMedia} />
 
                   <div>
                     <label className="mb-2 block text-sm font-medium text-foreground">

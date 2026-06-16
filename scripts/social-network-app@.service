@@ -1,0 +1,29 @@
+[Unit]
+Description=Social Network App — AI-assisted social media management dashboard
+Documentation=https://github.com/techengineerworkstation/social-network-app
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/home/%i/Apps/Social Network Program/social-network-app
+Environment=NODE_ENV=production
+Environment=PORT=8899
+EnvironmentFile=-/home/%i/Apps/Social Network Program/social-network-app/.env
+ExecStart=/usr/bin/node /home/%i/Apps/Social\ Network\ Program/social-network-app/node_modules/.bin/next start -p 8899
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=social-network-app
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/%i/Apps/Social\ Network\ Program/social-network-app
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
